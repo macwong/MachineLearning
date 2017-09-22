@@ -7,31 +7,32 @@ from scipy import misc, ndimage
 from scipy.ndimage.interpolation import zoom
 
 from keras import backend as K
-K.set_image_dim_ordering('tf')
-
 from keras.layers.normalization import BatchNormalization
 from keras.utils.data_utils import get_file
 from keras.models import Sequential
 from keras.layers.core import Flatten, Dense, Dropout, Lambda
 from keras.layers.convolutional import Convolution2D, MaxPooling2D, ZeroPadding2D
 from keras.layers.pooling import GlobalAveragePooling2D
-from keras.optimizers import SGD, RMSprop, Adam
+from keras.optimizers import SGD, Adam
 from keras.preprocessing import image
 
+# In case we are going to use the TensorFlow backend we need to explicitly set the Theano image ordering
+from keras import backend as K
+K.set_image_dim_ordering('th')
 
-vgg_mean = np.array([123.68, 116.779, 103.939], dtype=np.float32).reshape((1,1,3))
+vgg_mean = np.array([123.68, 116.779, 103.939], dtype=np.float32).reshape((3,1,1))
 def vgg_preprocess(x):
     x = x - vgg_mean
     return x[:, ::-1] # reverse axis rgb->bgr
 
 
-class Vgg16():
-    """The VGG 16 Imagenet model"""
+class Vgg16BN():
+    """The VGG 16 Imagenet model with Batch Normalization for the Dense Layers"""
 
 
-    def __init__(self):
-        self.FILE_PATH = 'http://www.platform.ai/models/'
-        self.create()
+    def __init__(self, size=(224,224), include_top=True):
+        self.FILE_PATH = 'http://files.fast.ai/models/'
+        self.create(size, include_top)
         self.get_classes()
 
 
@@ -54,19 +55,23 @@ class Vgg16():
         model = self.model
         for i in range(layers):
             model.add(ZeroPadding2D((1, 1)))
-            model.add(Convolution2D(filters, (3, 3), activation='relu'))
+            model.add(Convolution2D(filters, 3, 3, activation='relu'))
         model.add(MaxPooling2D((2, 2), strides=(2, 2)))
 
 
     def FCBlock(self):
         model = self.model
         model.add(Dense(4096, activation='relu'))
+        model.add(BatchNormalization())
         model.add(Dropout(0.5))
 
 
-    def create(self):
+    def create(self, size, include_top):
+        if size != (224,224):
+            include_top=False
+
         model = self.model = Sequential()
-        model.add(Lambda(vgg_preprocess, input_shape=(224,224,3), output_shape=(224,224,3)))
+        model.add(Lambda(vgg_preprocess, input_shape=(3,)+size, output_shape=(3,)+size))
 
         self.ConvBlock(2, 64)
         self.ConvBlock(2, 128)
@@ -74,12 +79,17 @@ class Vgg16():
         self.ConvBlock(3, 512)
         self.ConvBlock(3, 512)
 
+        if not include_top:
+            fname = 'vgg16_bn_conv.h5'
+            model.load_weights(get_file(fname, self.FILE_PATH+fname, cache_subdir='models'))
+            return
+
         model.add(Flatten())
         self.FCBlock()
         self.FCBlock()
         model.add(Dense(1000, activation='softmax'))
 
-        fname = 'vgg16_weights_tf_dim_ordering_tf_kernels.h5'
+        fname = 'vgg16_bn.h5'
         model.load_weights(get_file(fname, self.FILE_PATH+fname, cache_subdir='models'))
 
 
@@ -96,7 +106,8 @@ class Vgg16():
         self.compile()
 
     def finetune(self, batches):
-        self.ft(batches.num_class)
+        self.ft(batches.nb_class)
+
         classes = list(iter(batches.class_indices))
         for c in batches.class_indices:
             classes[batches.class_indices[c]] = c
@@ -114,34 +125,11 @@ class Vgg16():
 
 
     def fit(self, batches, val_batches, nb_epoch=1):
-        #self.model.fit_generator(batches, samples_per_epoch=batches.samples, nb_epoch=nb_epoch,
-        #        validation_data=val_batches, nb_val_samples=val_batches.samples)
-
-        # see https://github.com/fchollet/keras/wiki/Keras-2.0-release-notes:
-        # and: https://keras.io/models/sequential/#sequential-model-methods
-        # steps_per_epoch: 
-        # Total number of steps (batches of samples) to yield from generator before declaring one epoch finished and starting
-        # the next epoch. It should typically be equal to the number of unique samples of your dataset divided by the batch
-        # size.
-        
-        steps_per_epoch = int(batches.samples/batches.batch_size)
-        
-        if steps_per_epoch == 0:
-            steps_per_epoch = 1
-            
-        validation_steps = int(val_batches.samples/val_batches.batch_size)
-        
-        if validation_steps == 0:
-            validation_steps = 1
-
-        self.model.fit_generator(batches, 
-                                 steps_per_epoch=steps_per_epoch,
-                                 epochs=nb_epoch,
-                                 validation_data=val_batches, 
-                                 validation_steps=validation_steps)
+        self.model.fit_generator(batches, samples_per_epoch=batches.nb_sample, nb_epoch=nb_epoch,
+                validation_data=val_batches, nb_val_samples=val_batches.nb_sample)
 
 
     def test(self, path, batch_size=8):
         test_batches = self.get_batches(path, shuffle=False, batch_size=batch_size, class_mode=None)
-        return test_batches, self.model.predict_generator(test_batches, test_batches.samples)
+        return test_batches, self.model.predict_generator(test_batches, test_batches.nb_sample)
 
