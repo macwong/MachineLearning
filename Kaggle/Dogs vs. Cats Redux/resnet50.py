@@ -26,7 +26,7 @@ class Resnet50():
 
     def __init__(self, size=(224,224), include_top=True):
         self.FILE_PATH = 'http://files.fast.ai/models/'
-        self.vgg_mean = np.array([123.68, 116.779, 103.939]).reshape((3,1,1))
+        self.vgg_mean = np.array([123.68, 116.779, 103.939]).reshape((1,1,3))
         self.create(size, include_top)
         self.get_classes()
 
@@ -52,7 +52,7 @@ class Resnet50():
 
 
     def create(self, size, include_top):
-        input_shape = (3,)+size
+        input_shape = size + (3,)
         img_input = Input(shape=input_shape)
         bn_axis = 1
 
