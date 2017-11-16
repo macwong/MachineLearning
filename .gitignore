@@ -10,3 +10,4 @@ Kaggle/Dogs vs. Cats Redux/train
 Kaggle/Dogs vs. Cats Redux/__pycache__
 *.h5
 *.jpg
+*.png
