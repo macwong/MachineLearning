@@ -13,3 +13,4 @@ Kaggle/Dogs vs. Cats Redux/__pycache__
 *.jpg
 *.png
 _RawData
+__pycache__
