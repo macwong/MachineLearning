@@ -4,18 +4,44 @@ from keras.layers import Dense, Dropout, Flatten, Lambda, Activation
 from keras.layers import Conv2D, MaxPooling2D, ZeroPadding2D, GlobalAveragePooling2D
 from keras.layers.normalization import BatchNormalization
 from keras.optimizers import Adam
+import abc
 
-class DaveModel:
+class DaveBaseModel:
+    __metaclass__ = abc.ABCMeta
+    
     def __init__(self, Xtr, ytr, Xv, yv):
-        self.model = DaveModel.create_model()
         self.Xtr = Xtr
         self.ytr = ytr
         self.Xv = Xv
         self.yv = yv
-        self.data_gen, self.val_gen = helpers.get_generator(Xtr, Xv)
         self.batch_size = 32
         self.epochs = 50
+        self.data_gen, self.val_gen = helpers.get_generator(Xtr, Xv)
         
+        self.model = self.get_model()
+        
+    def train(self, batch_size, epochs):
+        if batch_size > 0:
+            self.batch_size = batch_size
+            
+        if epochs > 0:
+            self.epochs = epochs
+        
+        print("Batch Size:", batch_size)
+        print("Epochs:", epochs)
+
+        self.history = self.model.fit_generator(self.data_gen.flow(self.Xtr, self.ytr, batch_size=self.batch_size),
+                         steps_per_epoch=len(self.Xtr) / self.batch_size,
+                         epochs=self.epochs,
+                         validation_data=self.val_gen.flow(self.Xv, self.yv, batch_size=self.batch_size, shuffle=False),
+                         validation_steps = len(self.Xv) / self.batch_size)
+
+    
+    @abc.abstractmethod
+    def get_model(self):
+        pass
+
+class DaveModel(DaveBaseModel):
     def ConvBlock(model, layers, filters):
         '''Create [layers] layers consisting of zero padding, a convolution with [filters] 3x3 filters and batch normalization. Perform max pooling after the last layer.'''
         for i in range(layers):
@@ -24,7 +50,7 @@ class DaveModel:
             model.add(BatchNormalization(axis=3))
         model.add(MaxPooling2D((2, 2), strides=(2, 2)))
 
-    def create_model():
+    def get_model(self):
         '''Create the FCN and return a keras model.'''
 
         model = Sequential()
@@ -46,7 +72,6 @@ class DaveModel:
         model.add(Activation('softmax'))
         
         model.compile(loss='categorical_crossentropy', optimizer=Adam(lr=0.0001), metrics=['accuracy'])
-
         return model
 
     def train(self, batch_size = -1, epochs = -1):
@@ -65,7 +90,7 @@ class DaveModel:
                          validation_data=self.val_gen.flow(self.Xv, self.yv, batch_size=self.batch_size, shuffle=False),
                          validation_steps = len(self.Xv) / self.batch_size)
 
-    def plot_results():
+    def plot_results(self):
         plt.plot(self.history['acc'])
         plt.plot(self.history['val_acc'])
         plt.title('model accuracy')
