@@ -31,8 +31,8 @@ class DaveBaseModel:
         if epochs > 0:
             self.epochs = epochs
         
-        print("Batch Size:", batch_size)
-        print("Epochs:", epochs)
+        print("Batch Size:", self.batch_size)
+        print("Epochs:", self.epochs)
 
         history = self.model.fit_generator(self.data_gen.flow(self.Xtr, self.ytr, batch_size=self.batch_size),
                          steps_per_epoch=len(self.Xtr) / self.batch_size,
@@ -133,3 +133,18 @@ class DaveVGG(DaveBaseModel):
     def get_name(self):
         return "vgg"
 
+class SimpleModel(DaveBaseModel):
+    def get_model(self):
+        model = Sequential()
+        model.add(Lambda(lambda x: x, input_shape=(75, 75, 3)))
+        model.add(Conv2D(512, (3, 3), activation='relu'))
+        model.add(GlobalAveragePooling2D())
+        model.add(Dense(512, activation='relu'))
+        model.add(Dense(2, activation='softmax'))
+        
+        model.compile(loss='categorical_crossentropy', optimizer=Adam(lr=0.0001), metrics=['accuracy'])
+        
+        return model
+        
+    def get_name(self):
+        return "simple"
