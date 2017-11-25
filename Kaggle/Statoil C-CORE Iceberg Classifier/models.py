@@ -1,10 +1,14 @@
 import helpers
-from keras.models import Sequential
+from keras.models import Sequential, Model
 from keras.layers import Dense, Dropout, Flatten, Lambda, Activation
 from keras.layers import Conv2D, MaxPooling2D, ZeroPadding2D, GlobalAveragePooling2D
 from keras.layers.normalization import BatchNormalization
 from keras.optimizers import Adam
+from keras.applications import VGG16
 import abc
+from matplotlib import pyplot as plt
+import time
+import datetime
 
 class DaveBaseModel:
     __metaclass__ = abc.ABCMeta
@@ -20,7 +24,7 @@ class DaveBaseModel:
         
         self.model = self.get_model()
         
-    def train(self, batch_size, epochs):
+    def train(self, batch_size = -1, epochs = -1, saveModel = False):
         if batch_size > 0:
             self.batch_size = batch_size
             
@@ -30,15 +34,44 @@ class DaveBaseModel:
         print("Batch Size:", batch_size)
         print("Epochs:", epochs)
 
-        self.history = self.model.fit_generator(self.data_gen.flow(self.Xtr, self.ytr, batch_size=self.batch_size),
+        history = self.model.fit_generator(self.data_gen.flow(self.Xtr, self.ytr, batch_size=self.batch_size),
                          steps_per_epoch=len(self.Xtr) / self.batch_size,
                          epochs=self.epochs,
                          validation_data=self.val_gen.flow(self.Xv, self.yv, batch_size=self.batch_size, shuffle=False),
                          validation_steps = len(self.Xv) / self.batch_size)
+        
+        self.history = history.history
+        
+        if (saveModel):
+            self.save_model()
 
+    def plot_results(self):
+        plt.plot(self.history['acc'])
+        plt.plot(self.history['val_acc'])
+        plt.title('model accuracy')
+        plt.ylabel('accuracy')
+        plt.xlabel('epoch')
+        plt.legend(['train', 'test'], loc='upper left')
+        plt.show()
+        # summarize history for loss
+        plt.plot(self.history['loss'])
+        plt.plot(self.history['val_loss'])
+        plt.title('model loss')
+        plt.ylabel('loss')
+        plt.xlabel('epoch')
+        plt.legend(['train', 'test'], loc='upper left')
+        plt.show()
+        
+    def save_model(self):
+        name = self.get_name() + datetime.datetime.fromtimestamp(time.time()).strftime('%Y%m%d-%H%M%S') + ".h5"
+        self.model.save_weights(name)
     
     @abc.abstractmethod
     def get_model(self):
+        pass
+
+    @abc.abstractmethod
+    def get_name(self):
         pass
 
 class DaveModel(DaveBaseModel):
@@ -73,38 +106,30 @@ class DaveModel(DaveBaseModel):
         
         model.compile(loss='categorical_crossentropy', optimizer=Adam(lr=0.0001), metrics=['accuracy'])
         return model
+    
+    def get_name(self):
+        return "davemodel"
 
-    def train(self, batch_size = -1, epochs = -1):
-        if batch_size > 0:
-            self.batch_size = batch_size
-            
-        if epochs > 0:
-            self.epochs = epochs
-        
-        print("Batch Size:", batch_size)
-        print("Epochs:", epochs)
+class DaveVGG(DaveBaseModel):
+    def get_model(self):
+        vgg_model = VGG16(include_top=False, weights=None, input_shape=(75, 75, 3))
 
-        self.history = self.model.fit_generator(self.data_gen.flow(self.Xtr, self.ytr, batch_size=self.batch_size),
-                         steps_per_epoch=len(self.Xtr) / self.batch_size,
-                         epochs=self.epochs,
-                         validation_data=self.val_gen.flow(self.Xv, self.yv, batch_size=self.batch_size, shuffle=False),
-                         validation_steps = len(self.Xv) / self.batch_size)
+        #top_model = Sequential()
+        x = vgg_model.output
+        x = Flatten()(x)
+        #x = Dense(512, activation='relu')(x)
+        #x = Dense(512, activation='relu')(x)
+        #x = Dropout(0.5)(x)
+        predictions = Dense(2, activation='softmax')(x)
+        # top_model.load_weights(top_model_weights_path)
 
-    def plot_results(self):
-        plt.plot(self.history['acc'])
-        plt.plot(self.history['val_acc'])
-        plt.title('model accuracy')
-        plt.ylabel('accuracy')
-        plt.xlabel('epoch')
-        plt.legend(['train', 'test'], loc='upper left')
-        plt.show()
-        # summarize history for loss
-        plt.plot(self.history['loss'])
-        plt.plot(self.history['val_loss'])
-        plt.title('model loss')
-        plt.ylabel('loss')
-        plt.xlabel('epoch')
-        plt.legend(['train', 'test'], loc='upper left')
-        plt.show()
+        model = Model(inputs=vgg_model.input, outputs=predictions)
+        #model = Model(inputs= vgg_model.input, outputs= top_model(vgg_model.output))
 
+        model.compile(loss='categorical_crossentropy', optimizer=Adam(lr=0.0001), metrics=['accuracy'])
+        # print(self.model.summary())
+        return model
+
+    def get_name(self):
+        return "vgg"
 
