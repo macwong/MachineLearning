@@ -45,6 +45,12 @@ class DaveBaseModel:
         if (saveModel):
             self.save_model()
 
+    def predict(self, X_test):
+        pred_gen, val_gen = helpers.get_generator(self.Xtr, self.Xv)
+        predict = self.model.predict_generator(pred_gen.flow(X_test, batch_size=self.batch_size, shuffle = False), len(X_test) / self.batch_size)
+        
+        return predict
+        
     def plot_results(self):
         plt.plot(self.history['acc'])
         plt.plot(self.history['val_acc'])
