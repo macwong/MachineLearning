@@ -4,7 +4,7 @@ from keras.layers import Dense, Dropout, Flatten, Lambda, Activation
 from keras.layers import Conv2D, MaxPooling2D, ZeroPadding2D, GlobalAveragePooling2D
 from keras.layers.normalization import BatchNormalization
 from keras.optimizers import Adam
-from keras.applications import VGG16
+from keras.applications import VGG16, VGG19
 import abc
 from matplotlib import pyplot as plt
 import time
@@ -126,6 +126,8 @@ class DaveVGG(DaveBaseModel):
         #x = Dense(512, activation='relu')(x)
         #x = Dense(512, activation='relu')(x)
         #x = Dropout(0.5)(x)
+        x = Dense(4096, activation='relu', name='fc1')(x)
+        x = Dense(4096, activation='relu', name='fc2')(x)
         predictions = Dense(2, activation='softmax')(x)
         # top_model.load_weights(top_model_weights_path)
 
@@ -138,6 +140,24 @@ class DaveVGG(DaveBaseModel):
 
     def get_name(self):
         return "vgg"
+    
+
+class DaveVGG19(DaveBaseModel):
+    def get_model(self):
+        vgg_model = VGG19(include_top=False, weights=None, input_shape=(75, 75, 3))
+
+        x = vgg_model.output
+        x = Flatten()(x)
+        predictions = Dense(2, activation='softmax')(x)
+
+        model = Model(inputs=vgg_model.input, outputs=predictions)
+
+        model.compile(loss='categorical_crossentropy', optimizer=Adam(lr=0.0001), metrics=['accuracy'])
+        return model
+
+    def get_name(self):
+        return "vgg19"
+
 
 class SimpleModel(DaveBaseModel):
     def get_model(self):
