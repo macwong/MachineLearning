@@ -174,3 +174,38 @@ class SimpleModel(DaveBaseModel):
         
     def get_name(self):
         return "simple"
+
+class LeNetModel(DaveBaseModel):
+    def get_model(self):
+        # initialize the model
+        model = Sequential()
+
+        # first set of CONV => RELU => POOL
+        model.add(Conv2D(20, (5, 5), padding="same", input_shape=(75, 75, 3)))
+        model.add(Activation("relu"))
+        model.add(MaxPooling2D(pool_size=(2, 2), strides=(2, 2)))
+
+        # second set of CONV => RELU => POOL
+        model.add(Conv2D(50, (5, 5), padding="same"))
+        model.add(Activation("relu"))
+        model.add(MaxPooling2D(pool_size=(2, 2), strides=(2, 2)))
+
+        # set of FC => RELU layers
+        model.add(Flatten())
+        model.add(Dense(500))
+        model.add(Activation("relu"))
+
+        # softmax classifier
+        model.add(Dense(2))
+        model.add(Activation("softmax"))
+        
+        model.compile(loss='categorical_crossentropy', optimizer=Adam(lr=0.0001), metrics=['accuracy'])
+        
+        return model
+        
+    def get_name(self):
+        return "lenet"
+    
+    
+    
+    
