@@ -14,10 +14,10 @@ class Trainer:
             self.predict.append(model.predict())
             
     def submit(self):
-        prediction = pd.DataFrame()
+        prediction = np.zeros((8424, ))
         
         for pred in self.predict:
-            prediction += pred
+            prediction += pred[:, 1]
             
         prediction = prediction / len(self.predict)
         
