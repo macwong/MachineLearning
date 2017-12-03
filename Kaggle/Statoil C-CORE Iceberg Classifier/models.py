@@ -31,6 +31,7 @@ class DaveBaseModel:
         if epochs > 0:
             self.epochs = epochs
         
+        print("Model:", self.get_name())
         print("Batch Size:", self.batch_size)
         print("Epochs:", self.epochs)
 

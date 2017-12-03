@@ -7,11 +7,11 @@ class Trainer:
         for model in self.models:
             model.train(batch_size, epoch, saveMe)
             
-    def predict(self):
+    def predict(self, X_test):
         self.predict = []
 
         for model in self.models:
-            self.predict.append(model.predict())
+            self.predict.append(model.predict(X_test))
             
     def submit(self):
         prediction = np.zeros((8424, ))
