@@ -5,10 +5,13 @@ from keras.layers import Conv2D, MaxPooling2D, ZeroPadding2D, GlobalAveragePooli
 from keras.layers.normalization import BatchNormalization
 from keras.optimizers import Adam
 from keras.applications import VGG16, VGG19
+from keras.preprocessing.image import ImageDataGenerator
 import abc
 from matplotlib import pyplot as plt
 import time
 import datetime
+import numpy as np
+import pandas as pd
 
 class DaveBaseModel:
     __metaclass__ = abc.ABCMeta
@@ -46,12 +49,36 @@ class DaveBaseModel:
         if (saveModel):
             self.save_model()
 
-    def predict(self, X_test):
-        pred_gen, val_gen = helpers.get_generator(self.Xtr, self.Xv)
+    def train(self, X_train, y_train, batch_size = -1, epochs = -1, saveModel = True):
+        if batch_size > 0:
+            self.batch_size = batch_size
+            
+        if epochs > 0:
+            self.epochs = epochs
+        
+        print("FULL TRAINING")
+        print("Model:", self.get_name())
+        print("Batch Size:", self.batch_size)
+        print("Epochs:", self.epochs)
+
+        history = self.model.fit_generator(self.data_gen.flow(X_train, y_train, batch_size=self.batch_size),
+                         steps_per_epoch=len(X_train) / self.batch_size,
+                         epochs=self.epochs)
+        
+        self.history = history.history
+        
+        if (saveModel):
+            self.save_model()
+        
+    def predict(self, X_test, test, submit = True):
+        pred_gen = ImageDataGenerator()
         predict = self.model.predict_generator(pred_gen.flow(X_test, batch_size=self.batch_size, shuffle = False), len(X_test) / self.batch_size)
         
-        return predict
+        if submit:
+            self.create_submission(predict, test)
         
+        return predict
+    
     def plot_results(self):
         plt.plot(self.history['acc'])
         plt.plot(self.history['val_acc'])
@@ -72,6 +99,25 @@ class DaveBaseModel:
     def save_model(self):
         name = self.get_name() + datetime.datetime.fromtimestamp(time.time()).strftime('%Y%m%d-%H%M%S') + ".h5"
         self.model.save_weights(name)
+        
+    def create_submission(self, predict, test):
+        predict_len = len(predict)
+        print(predict_len)
+        prediction = np.zeros((predict_len, ))
+        
+        for pred in predict:
+            prediction += pred[1]
+            
+        prediction = prediction / predict_len
+        
+        submission = pd.DataFrame(test, columns=["id"])
+        
+        submission["is_iceberg"] = prediction
+
+        test_func = lambda p: round(p["is_iceberg"], 4)
+        submission["is_iceberg"] = test_func(submission)
+        submission["is_iceberg"] = submission["is_iceberg"].round(4)
+        submission.to_csv("submission.csv", float_format='%g', index = False)
     
     @abc.abstractmethod
     def get_model(self):
