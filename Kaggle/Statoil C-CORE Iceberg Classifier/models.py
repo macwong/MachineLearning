@@ -117,6 +117,7 @@ class DaveModel(DaveBaseModel):
     def get_name(self):
         return "davemodel"
 
+    
 class DaveVGG(DaveBaseModel):
     def get_model(self):
         vgg_model = VGG16(include_top=False, weights=None, input_shape=(75, 75, 3))
