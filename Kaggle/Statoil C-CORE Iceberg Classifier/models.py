@@ -101,18 +101,18 @@ class DaveBaseModel:
         self.model.save_weights(name)
         
     def create_submission(self, predict, test):
-        predict_len = len(predict)
-        print(predict_len)
-        prediction = np.zeros((predict_len, ))
+        #predict_len = len(predict)
+        #print(predict_len)
+        #prediction = np.zeros((predict_len, ))
         
-        for pred in predict:
-            prediction += pred[1]
+        #for pred in predict:
+        #    prediction += pred[1]
             
-        prediction = prediction / predict_len
+        #prediction = prediction / predict_len
         
         submission = pd.DataFrame(test, columns=["id"])
         
-        submission["is_iceberg"] = prediction
+        submission["is_iceberg"] = predict[:, 1]
 
         test_func = lambda p: round(p["is_iceberg"], 4)
         submission["is_iceberg"] = test_func(submission)
