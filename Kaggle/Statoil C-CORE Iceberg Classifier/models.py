@@ -49,7 +49,7 @@ class DaveBaseModel:
         if (saveModel):
             self.save_model()
 
-    def train(self, X_train, y_train, batch_size = -1, epochs = -1, saveModel = True):
+    def train_all(self, X_train, y_train, batch_size = -1, epochs = -1, saveModel = True):
         if batch_size > 0:
             self.batch_size = batch_size
             
@@ -101,15 +101,6 @@ class DaveBaseModel:
         self.model.save_weights(name)
         
     def create_submission(self, predict, test):
-        #predict_len = len(predict)
-        #print(predict_len)
-        #prediction = np.zeros((predict_len, ))
-        
-        #for pred in predict:
-        #    prediction += pred[1]
-            
-        #prediction = prediction / predict_len
-        
         submission = pd.DataFrame(test, columns=["id"])
         
         submission["is_iceberg"] = predict[:, 1]
