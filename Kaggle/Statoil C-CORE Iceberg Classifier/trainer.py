@@ -5,10 +5,12 @@ import time
 import datetime
 
 class Trainer:
-    def __init__(self, ids, X, y, models):
+    def __init__(self, ids, X, y, X_test, models):
+        self.has_trained = False
         self.ids = ids
         self.X = X
         self.y = y
+        self.X_test = X_test
         self.X_train, self.X_val, self.y_train, self.y_val = train_test_split(X, y, shuffle=False, test_size=0.20, random_state = 23)
         self.models = models
         self.predictions = []
@@ -16,16 +18,18 @@ class Trainer:
     def train(self, batch_size = 32, epochs = 80, saveModel = True):
         for model in self.models:
             model.train(self.X_train, self.y_train, self.X_val, self.y_val, batch_size, epochs, saveModel)
-
+            self.has_trained = True
+            
     def train_full(self, batch_size = 32, epochs = 80, saveModel = True):
         for model in self.models:
             model.train(self.X, self.y, batch_size = batch_size, epochs = epochs, saveModel = saveModel)
-                        
-    def predict(self, X_test, submit = True):
+            self.has_trained = True
+            
+    def predict(self, submit = True):
         self.predictions = []
 
         for model in self.models:
-            self.predictions.append(model.predict(X_test, submit = False))
+            self.predictions.append(model.predict(self.X_test, submit = False))
             
         if submit:
             self.submit()
