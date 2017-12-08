@@ -12,7 +12,7 @@ class PseudoLabeller:
         self.trainer = trainer
         
         if trainer.has_trained == False:
-            trainer.train(32, 1, False)
+            trainer.train(32, 5, False)
             
         if trainer.has_predicted == False:
             trainer.predict(submit = False)
@@ -28,14 +28,8 @@ class PseudoLabeller:
             
         self.results['ids'] = trainer.ids
         self.results['definitive'] = self.results.apply(lambda x: self.is_definitive(trainer.models, x), axis = 1)
-#        very_positive =self.results.apply(lambda x: x["davemodel"] > 0.5 and x["vgg"] > 0.5 and x["vgg19"] > 0.5 and x["lenet"] > 0.5, axis = 1)
-#        very_negative = self.results.apply(lambda x: x["davemodel"] <= 0.5 and x["vgg"] <= 0.5 and x["vgg19"] <= 0.5 and x["lenet"] <= 0.5, axis = 1)
-#        self.results['definitive'] = very_positive | very_negative
-            
-#        self.results["very_positive"] = self.results.apply(lambda x: x["davemodel"] > 0.5 and x["vgg"] > 0.5 and x["vgg19"] > 0.5 and x["lenet"] > 0.5, axis = 1)
-#        self.results["very_negative"] = self.results.apply(lambda x: x["davemodel"] <= 0.5 and x["vgg"] <= 0.5 and x["vgg19"] <= 0.5 and x["lenet"] <= 0.5, axis = 1)
-#        self.results["definitive"] = self.results["very_positive"] | self.results["very_negative"]
-            
+        self.results["label"] = self.results.apply(lambda x: self.get_label(trainer.models, x), axis = 1)
+        
         print(self.results)
         
     def is_definitive(self, models, result):
@@ -47,3 +41,21 @@ class PseudoLabeller:
             is_neg = is_neg == True and result[model.get_name()] <= 0.5
         
         return is_pos | is_neg
+    
+    def get_label(self, models, result):
+        score = 0
+        
+        for model in models:
+            if result[model.get_name()] > 0.5:
+                score += 1
+            else:
+                score -= 1
+            
+        label = -1
+        
+        if score > 0:
+            label = 1
+        elif score < 0:
+            label = 0
+            
+        return label
