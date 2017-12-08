@@ -23,10 +23,28 @@ class DaveBaseModel:
         self.yv = yv
         self.batch_size = 32
         self.epochs = 50
-        self.data_gen, self.val_gen = helpers.get_generator(Xtr, Xv)
+        self.data_gen, self.val_gen = self.get_generator(Xtr, Xv)
         
         self.model = self.get_model()
         
+        
+    def get_generator(self, Xtr, Xv):
+        data_gen = ImageDataGenerator(
+                    shear_range=0.1,
+                    zoom_range=0.1,
+                    rotation_range=10,
+                    width_shift_range=0.05,
+                    height_shift_range=0.05,
+                    vertical_flip=True,
+                    horizontal_flip=True)
+
+        data_gen.fit(Xtr)
+
+        val_gen = ImageDataGenerator()
+        val_gen.fit(Xv)
+
+        return data_gen, val_gen
+
     def train(self, batch_size = -1, epochs = -1, saveModel = False):
         if batch_size > 0:
             self.batch_size = batch_size
