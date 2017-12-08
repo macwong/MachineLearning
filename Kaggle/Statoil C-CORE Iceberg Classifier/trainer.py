@@ -14,7 +14,7 @@ class Trainer:
 
     def train_full(self, batch_size = 32, epochs = 80, saveModel = True):
         for model in self.models:
-            model.train(self.X_train, self.y_train, batch_size = batch_size, epochs = epochs, saveModel = saveModel)
+            model.train(self.X, self.y, batch_size = batch_size, epochs = epochs, saveModel = saveModel)
                         
     def predict(self, X_test):
         self.predict = []

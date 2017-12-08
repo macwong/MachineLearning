@@ -22,8 +22,7 @@ class DaveBaseModel:
         
         self.model = self.get_model()
         
-        
-    def get_generator(self, Xtr, Xv):
+    def get_generator(self, Xtr):
         data_gen = ImageDataGenerator(
                     shear_range=0.1,
                     zoom_range=0.1,
@@ -35,10 +34,10 @@ class DaveBaseModel:
 
         data_gen.fit(Xtr)
 
-        val_gen = ImageDataGenerator()
-        val_gen.fit(Xv)
-
-        return data_gen, val_gen
+        return data_gen
+    
+    def get_generator_validation(self, Xv):
+        return ImageDataGenerator()
 
     def train(self, X_train, y_train, X_val = None, y_val = None, batch_size = -1, epochs = -1, saveModel = False):
         if batch_size > 0:
@@ -47,12 +46,13 @@ class DaveBaseModel:
         if epochs > 0:
             self.epochs = epochs
 
-        data_gen, val_gen = self.get_generator(X_train, X_val)
+        data_gen = self.get_generator(X_train)
             
         val_data = None
         val_steps = None
             
         if (X_val is not None and y_val is not None):
+            val_gen = self.get_generator_validation(X_val)
             val_data = val_gen.flow(X_val, y_val, batch_size=self.batch_size, shuffle=False)
             val_steps = len(X_val) / self.batch_size
         
