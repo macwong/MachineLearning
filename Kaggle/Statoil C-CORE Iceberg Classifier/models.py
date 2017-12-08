@@ -1,4 +1,3 @@
-import helpers
 from keras.models import Sequential, Model
 from keras.layers import Dense, Dropout, Flatten, Lambda, Activation
 from keras.layers import Conv2D, MaxPooling2D, ZeroPadding2D, GlobalAveragePooling2D
@@ -10,15 +9,15 @@ import abc
 from matplotlib import pyplot as plt
 import time
 import datetime
-import numpy as np
 import pandas as pd
 
 class DaveBaseModel:
     __metaclass__ = abc.ABCMeta
     
-    def __init__(self):
+    def __init__(self, ids = None):
         self.batch_size = 32
         self.epochs = 50
+        self.ids = ids
         
         self.model = self.get_model()
         
@@ -56,6 +55,8 @@ class DaveBaseModel:
             val_data = val_gen.flow(X_val, y_val, batch_size=self.batch_size, shuffle=False)
             val_steps = len(X_val) / self.batch_size
         
+        print("\n")
+        print("================================================")
         print("Model:", self.get_name())
         print("Batch Size:", self.batch_size)
         print("Epochs:", self.epochs)
@@ -71,12 +72,12 @@ class DaveBaseModel:
         if (saveModel):
             self.save_model()
 
-    def predict(self, X_test, test, submit = True):
+    def predict(self, X_test, submit = True):
         pred_gen = ImageDataGenerator()
         predict = self.model.predict_generator(pred_gen.flow(X_test, batch_size=self.batch_size, shuffle = False), len(X_test) / self.batch_size)
         
-        if submit:
-            self.create_submission(predict, test)
+        if submit and self.ids is not None:
+            self.create_submission(predict)
         
         return predict
     
@@ -101,15 +102,15 @@ class DaveBaseModel:
         name = self.get_name() + datetime.datetime.fromtimestamp(time.time()).strftime('%Y%m%d-%H%M%S') + ".h5"
         self.model.save_weights(name)
         
-    def create_submission(self, predict, test):
-        submission = pd.DataFrame(test, columns=["id"])
+    def create_submission(self, predict):
+        submission = pd.DataFrame(self.ids, columns=["id"])
         
         submission["is_iceberg"] = predict[:, 1]
 
         test_func = lambda p: round(p["is_iceberg"], 4)
         submission["is_iceberg"] = test_func(submission)
         submission["is_iceberg"] = submission["is_iceberg"].round(4)
-        submission.to_csv("submission.csv", float_format='%g', index = False)
+        submission.to_csv("submission-" + self.get_name() + ".csv", float_format='%g', index = False)
     
     @abc.abstractmethod
     def get_model(self):
