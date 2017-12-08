@@ -18,6 +18,7 @@ class DaveBaseModel:
         self.batch_size = 32
         self.epochs = 50
         self.ids = ids
+        self.predictions = None
         
         self.model = self.get_model()
         
@@ -73,13 +74,17 @@ class DaveBaseModel:
             self.save_model()
 
     def predict(self, X_test, submit = True):
+        print("\n")
+        print("================================================")
+        print("Predict Model:", self.get_name())
+        
         pred_gen = ImageDataGenerator()
-        predict = self.model.predict_generator(pred_gen.flow(X_test, batch_size=self.batch_size, shuffle = False), len(X_test) / self.batch_size)
+        self.predictions = self.model.predict_generator(pred_gen.flow(X_test, batch_size=self.batch_size, shuffle = False), len(X_test) / self.batch_size)
         
         if submit and self.ids is not None:
-            self.create_submission(predict)
+            self.create_submission(self.predictions)
         
-        return predict
+        return self.predictions
     
     def plot_results(self):
         plt.plot(self.history['acc'])

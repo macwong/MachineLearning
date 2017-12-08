@@ -13,13 +13,17 @@ class PseudoLabeller:
         
         if trainer.has_trained == False:
             trainer.train(32, 1, False)
+            
+        if trainer.has_predicted == False:
+            trainer.predict(submit = False)
+            
+        self.predictions = trainer.predictions
         
         self.results = pd.DataFrame()
         
         for model in trainer.models:
             name = model.get_name()
             print(name)
-            test = model.predict(trainer.X_test, False)
-            self.results[name] = test[:, 0]
+            self.results[name] = model.predictions[:, 0]
             
         print(self.results)

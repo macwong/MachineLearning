@@ -7,6 +7,7 @@ import datetime
 class Trainer:
     def __init__(self, ids, X, y, X_test, models):
         self.has_trained = False
+        self.has_predicted = False
         self.ids = ids
         self.X = X
         self.y = y
@@ -33,6 +34,8 @@ class Trainer:
             
         if submit:
             self.submit()
+            
+        self.has_predicted = True
             
     def submit(self):
         prediction = np.zeros((8424, ))
