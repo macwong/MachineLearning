@@ -1,12 +1,21 @@
+from sklearn.model_selection import train_test_split
+
 class Trainer:
-    def __init__(self, models):
+    def __init__(self, X, y, models):
+        self.X = X
+        self.y = y
+        self.X_train, self.X_val, self.y_train, self.y_val = train_test_split(X, y, shuffle=False, test_size=0.20)
         self.models = models
         self.predict = []
         
-    def train(self, batch_size = 32, epoch = 80, saveMe = True):
+    def train(self, batch_size = 32, epochs = 80, saveModel = True):
         for model in self.models:
-            model.train(batch_size, epoch, saveMe)
-            
+            model.train(self.X_train, self.y_train, self.X_val, self.y_val, batch_size, epochs, saveModel)
+
+    def train_full(self, batch_size = 32, epochs = 80, saveModel = True):
+        for model in self.models:
+            model.train(self.X_train, self.y_train, batch_size = batch_size, epochs = epochs, saveModel = saveModel)
+                        
     def predict(self, X_test):
         self.predict = []
 

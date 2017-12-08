@@ -16,14 +16,9 @@ import pandas as pd
 class DaveBaseModel:
     __metaclass__ = abc.ABCMeta
     
-    def __init__(self, Xtr, ytr, Xv, yv):
-        self.Xtr = Xtr
-        self.ytr = ytr
-        self.Xv = Xv
-        self.yv = yv
+    def __init__(self):
         self.batch_size = 32
         self.epochs = 50
-        self.data_gen, self.val_gen = self.get_generator(Xtr, Xv)
         
         self.model = self.get_model()
         
@@ -45,49 +40,37 @@ class DaveBaseModel:
 
         return data_gen, val_gen
 
-    def train(self, batch_size = -1, epochs = -1, saveModel = False):
+    def train(self, X_train, y_train, X_val = None, y_val = None, batch_size = -1, epochs = -1, saveModel = False):
         if batch_size > 0:
             self.batch_size = batch_size
-            
+
         if epochs > 0:
             self.epochs = epochs
+
+        data_gen, val_gen = self.get_generator(X_train, X_val)
+            
+        val_data = None
+        val_steps = None
+            
+        if (X_val is not None and y_val is not None):
+            val_data = val_gen.flow(X_val, y_val, batch_size=self.batch_size, shuffle=False)
+            val_steps = len(X_val) / self.batch_size
         
         print("Model:", self.get_name())
         print("Batch Size:", self.batch_size)
         print("Epochs:", self.epochs)
 
-        history = self.model.fit_generator(self.data_gen.flow(self.Xtr, self.ytr, batch_size=self.batch_size),
-                         steps_per_epoch=len(self.Xtr) / self.batch_size,
-                         epochs=self.epochs,
-                         validation_data=self.val_gen.flow(self.Xv, self.yv, batch_size=self.batch_size, shuffle=False),
-                         validation_steps = len(self.Xv) / self.batch_size)
-        
-        self.history = history.history
-        
-        if (saveModel):
-            self.save_model()
-
-    def train_all(self, X_train, y_train, batch_size = -1, epochs = -1, saveModel = True):
-        if batch_size > 0:
-            self.batch_size = batch_size
-            
-        if epochs > 0:
-            self.epochs = epochs
-        
-        print("FULL TRAINING")
-        print("Model:", self.get_name())
-        print("Batch Size:", self.batch_size)
-        print("Epochs:", self.epochs)
-
-        history = self.model.fit_generator(self.data_gen.flow(X_train, y_train, batch_size=self.batch_size),
+        history = self.model.fit_generator(data_gen.flow(X_train, y_train, batch_size=self.batch_size),
                          steps_per_epoch=len(X_train) / self.batch_size,
-                         epochs=self.epochs)
+                         epochs=self.epochs,
+                         validation_data = val_data,
+                         validation_steps = val_steps)
         
         self.history = history.history
         
         if (saveModel):
             self.save_model()
-        
+
     def predict(self, X_test, test, submit = True):
         pred_gen = ImageDataGenerator()
         predict = self.model.predict_generator(pred_gen.flow(X_test, batch_size=self.batch_size, shuffle = False), len(X_test) / self.batch_size)
