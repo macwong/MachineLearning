@@ -12,7 +12,7 @@ class PseudoLabeller:
         self.trainer = trainer
         
         if trainer.has_trained == False:
-            trainer.train(32, 5, False)
+            trainer.train(32, 50, True)
             
         if trainer.has_predicted == False:
             trainer.predict(submit = False)
@@ -31,6 +31,17 @@ class PseudoLabeller:
         self.results["label"] = self.results.apply(lambda x: self.get_label(trainer.models, x), axis = 1)
         
         print(self.results)
+        
+#    def retrain(self, trainer):
+#        # Get the definitive records, and append it to the training data
+#        X_train = self.trainer.X_train
+#        
+#        X_train_pseudo = self.trainer.X_test[self.results["label"] >= 0]
+#        y_train_pseudo = self.results[self.results["label"] >= 0]["label"]
+#        print(X_train_pseudo.shape)
+#        print(y_train_pseudo.shape)
+#        
+##        new_trainer = self.trainer_def
         
     def is_definitive(self, models, result):
         is_pos = True

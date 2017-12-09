@@ -252,6 +252,52 @@ class LeNetModel(DaveBaseModel):
     def get_name(self):
         return "lenet"
     
+class BestModel(DaveBaseModel):
+    def get_model(self):
+        #Build keras model
+        
+        model=Sequential()
+        
+        # CNN 1
+        model.add(Conv2D(64, kernel_size=(3, 3),activation='relu', input_shape=(75, 75, 3)))
+        model.add(MaxPooling2D(pool_size=(3, 3), strides=(2, 2)))
+        model.add(Dropout(0.2))
     
+        # CNN 2
+        model.add(Conv2D(128, kernel_size=(3, 3), activation='relu' ))
+        model.add(MaxPooling2D(pool_size=(2, 2), strides=(2, 2)))
+        model.add(Dropout(0.2))
     
+        # CNN 3
+        model.add(Conv2D(128, kernel_size=(3, 3), activation='relu'))
+        model.add(MaxPooling2D(pool_size=(2, 2), strides=(2, 2)))
+        model.add(Dropout(0.3))
+    
+        #CNN 4
+        model.add(Conv2D(64, kernel_size=(3, 3), activation='relu'))
+        model.add(MaxPooling2D(pool_size=(2, 2), strides=(2, 2)))
+        model.add(Dropout(0.3))
+    
+        # You must flatten the data for the dense layers
+        model.add(Flatten())
+    
+        #Dense 1
+        model.add(Dense(512, activation='relu'))
+        model.add(Dropout(0.2))
+    
+        #Dense 2
+        model.add(Dense(256, activation='relu'))
+        model.add(Dropout(0.2))
+    
+        # Output 
+        model.add(Dense(2, activation="softmax"))
+    
+        optimizer = Adam(lr=0.001, decay=0.0)
+        model.compile(loss='binary_crossentropy', optimizer=optimizer, metrics=['accuracy'])
+        
+        return model
+
+        
+    def get_name(self):
+        return "best"
     

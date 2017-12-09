@@ -76,42 +76,8 @@ def get_more_images(imgs):
     
     return more_images
 
-
 Xtr_more = get_more_images(Xtrain) 
 Ytr_more = np.concatenate((Ytrain,Ytrain,Ytrain))
-
-
-
-def get_more_images(imgs):
-    
-    more_images = []
-    vert_flip_imgs = []
-    hori_flip_imgs = []
-      
-    for i in range(0,imgs.shape[0]):
-        a=imgs[i,:,:,0]
-        b=imgs[i,:,:,1]
-        c=imgs[i,:,:,2]
-        
-        av=cv2.flip(a,1)
-        ah=cv2.flip(a,0)
-        bv=cv2.flip(b,1)
-        bh=cv2.flip(b,0)
-        cv=cv2.flip(c,1)
-        ch=cv2.flip(c,0)
-        
-        vert_flip_imgs.append(np.dstack((av, bv, cv)))
-        hori_flip_imgs.append(np.dstack((ah, bh, ch)))
-      
-    v = np.array(vert_flip_imgs)
-    h = np.array(hori_flip_imgs)
-       
-    more_images = np.concatenate((imgs,v,h))
-    
-    return more_images
-
-Ytr_more = np.concatenate((Ytrain,Ytrain,Ytrain))
-
 
 def getModel():
     #Build keras model
