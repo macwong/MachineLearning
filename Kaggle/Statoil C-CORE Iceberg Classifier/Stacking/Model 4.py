@@ -168,4 +168,4 @@ pred_test = model.predict(Xtest)
 submission = pd.DataFrame({'id': df_test["id"], 'is_iceberg': pred_test.reshape((pred_test.shape[0]))})
 print(submission.head(10))
 
-submission.to_csv('submission.csv', index=False)
+submission.to_csv('submission4_best.csv', index=False)
