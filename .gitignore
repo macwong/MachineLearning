@@ -12,6 +12,7 @@ Kaggle/Dogs vs. Cats Redux/__pycache__
 *.hdf5
 *.jpg
 *.png
+*.csv
 _RawData
 __pycache__
 Kaggle/Statoil C-CORE Iceberg Classifier/Stacking/common
