@@ -15,6 +15,7 @@ Kaggle/Dogs vs. Cats Redux/__pycache__
 *.csv
 .ipynb_checkpoints
 _RawData
+vgg19bnfcn_10cv1
 __pycache__
 Kaggle/Statoil C-CORE Iceberg Classifier/Stacking/common
 Kaggle/Statoil C-CORE Iceberg Classifier/Stacking/model_b
