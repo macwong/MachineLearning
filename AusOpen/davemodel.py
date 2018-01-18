@@ -1,8 +1,8 @@
 import abc
 import numpy as np
+import pandas as pd
 from sklearn.linear_model import LogisticRegression
 from sklearn.metrics import log_loss
-from sklearn.base import clone
 from sklearn.model_selection import train_test_split, cross_val_score
 
 class DaveModelBase:
@@ -82,9 +82,10 @@ class DaveModelBase:
     def get_params(self):
         return None
     
-    def create_submission(self):
+    def create_submission(self, pred_men, pred_women):
+        print("Creating submission...")
         submission = pd.DataFrame()
-        submission["submission_id"] = men_test_ids.append(women_test_ids)
+        submission["submission_id"] = self.ids_men.append(self.ids_women)
         submission["train"] = 0
         
         pred_men = np.clip(pred_men, 0.0001, 0.9999)
@@ -100,8 +101,9 @@ class DaveModelBase:
         submission["submission_id"].cat.set_categories(sorter, inplace = True)
         submission = submission.sort_values(["submission_id"])
         
-        submission.to_csv("AUS_SubmissionFormat_LogisticRegression.csv", index=False)
-    
+        submission.to_csv("AUS_SubmissionFormat_" + self.get_name() + ".csv", index=False)
+        print("Done!")
+        
     def save_model(self):
         pass
     
