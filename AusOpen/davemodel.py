@@ -1,6 +1,7 @@
 import abc
 import numpy as np
 import pandas as pd
+import pickle
 from sklearn.linear_model import LogisticRegression
 from sklearn.metrics import log_loss
 from sklearn.model_selection import train_test_split, cross_val_score
@@ -105,7 +106,18 @@ class DaveModelBase:
         print("Done!")
         
     def save_model(self):
-        pass
+        with open(self.get_name() + '.pickle', 'wb') as handle:
+            pickle.dump(self, handle, protocol=pickle.HIGHEST_PROTOCOL)
+
+        print("Saved")
+    
+    def load_model(file_name):
+        with open(file_name, 'rb') as handle:
+            b = pickle.load(handle)
+            
+        print("Loaded")
+        
+        return b
     
     def run(self):
         pass
