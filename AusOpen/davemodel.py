@@ -3,6 +3,7 @@ import numpy as np
 import pandas as pd
 import pickle
 from sklearn.linear_model import LogisticRegression
+from sklearn.ensemble import RandomForestClassifier
 from sklearn.metrics import log_loss
 from sklearn.model_selection import train_test_split, cross_val_score
 
@@ -120,7 +121,10 @@ class DaveModelBase:
         return b
     
     def run(self):
-        pass
+        self.train()
+        pred_men, pred_women = self.predict()
+        self.create_submission(pred_men, pred_women)
+        self.save_model()
     
 
 class MyLogisticRegression(DaveModelBase):
@@ -128,4 +132,12 @@ class MyLogisticRegression(DaveModelBase):
         return LogisticRegression()
     
     def get_name(self):
-        return "Logistic Regression"
+        return "LogisticRegression"
+    
+
+class MyRandomForest(DaveModelBase):
+    def get_model(self):
+        return RandomForestClassifier(n_estimators=100, max_features=10, random_state=23)
+    
+    def get_name(self):
+        return "RandomForestClassifier"
