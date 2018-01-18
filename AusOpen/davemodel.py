@@ -156,7 +156,22 @@ class MyLogisticRegression(DaveModelBase):
 
 class MyRandomForest(DaveModelBase):
     def get_model(self):
-        return RandomForestClassifier(n_estimators=100, max_features=10, random_state=23)
+        clf = RandomForestClassifier(random_state=42)
+    
+        param_grid = {
+#                          'n_estimators': [45, 50, 60],
+#                          'max_depth': [9, 11, 13, 15]
+                         'n_estimators': [60],
+                         'max_depth': [13],
+                         'max_features': [10, 20]
+                     }
+    
+        grid_clf = GridSearchCV(clf, param_grid, cv=10)
+#        grid_clf.fit(X, y)
+        
+#        return RandomForestClassifier(n_estimators=100, max_features=10, random_state=23)
+        
+        return grid_clf
     
     def get_name(self):
         return "RandomForestClassifier"
