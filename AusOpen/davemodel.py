@@ -3,7 +3,7 @@ import numpy as np
 from sklearn.linear_model import LogisticRegression
 from sklearn.metrics import log_loss
 from sklearn.base import clone
-from sklearn.model_selection import train_test_split
+from sklearn.model_selection import train_test_split, cross_val_score
 
 class DaveModelBase:
     __metaclass__ = abc.ABCMeta
@@ -38,6 +38,11 @@ class DaveModelBase:
         print("Prediction count:", preds.shape)
         
         return preds       
+
+    def evaluate_cv(self):
+        model = clone(self.model)
+        results = cross_val_score(model, self.X_train, self.y_train, cv=5, scoring='log_loss', n_jobs=4)
+        print("({0:.3f}) +/- ({1:.3f})".format(results.mean(), results.std()))
 
     def evaluate(self):
         X_train, X_test, y_train, y_test = train_test_split(self.X_train, self.y_train, test_size = 0.25, random_state = 42)
