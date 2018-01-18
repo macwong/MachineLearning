@@ -4,6 +4,7 @@ import pandas as pd
 import pickle
 from sklearn.linear_model import LogisticRegression
 from sklearn.ensemble import RandomForestClassifier
+from xgboost.sklearn import XGBClassifier
 from sklearn.metrics import log_loss
 from sklearn.model_selection import train_test_split, cross_val_score
 
@@ -141,3 +142,11 @@ class MyRandomForest(DaveModelBase):
     
     def get_name(self):
         return "RandomForestClassifier"
+    
+    
+class MyXGBoost(DaveModelBase):
+    def get_model(self):
+        return XGBClassifier(max_depth=7, learning_rate=0.012, n_estimators=1000, subsample=0.62, colsample_bytree=0.6, seed=1, n_jobs=4)
+    
+    def get_name(self):
+        return "XGBoost"
