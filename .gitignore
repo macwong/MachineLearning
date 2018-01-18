@@ -13,6 +13,7 @@ Kaggle/Dogs vs. Cats Redux/__pycache__
 *.jpg
 *.png
 *.csv
+*.pickle
 .ipynb_checkpoints
 _RawData
 vgg19bnfcn_10cv1
