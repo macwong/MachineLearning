@@ -3,8 +3,11 @@ import numpy as np
 import pandas as pd
 import pickle
 from sklearn.linear_model import LogisticRegression
-from sklearn.ensemble import RandomForestClassifier
+from sklearn.ensemble import RandomForestClassifier, BaggingClassifier, GradientBoostingClassifier
+from sklearn.tree import DecisionTreeClassifier
 from xgboost.sklearn import XGBClassifier
+from sklearn.model_selection import GridSearchCV
+
 from sklearn.metrics import log_loss
 from sklearn.model_selection import train_test_split, cross_val_score
 
@@ -26,12 +29,21 @@ class DaveModelBase:
 
     def train(self):
         print("\nTraining men...")
-        DaveModelBase.train_model(self.model_men, self.X_train_men, self.y_train_men)
-        DaveModelBase.analyse(self.model_men, self.X_train_men, self.y_train_men)
+        model_men = self.model_men
+        model_women = self.model_women
+        params = self.get_params()
+        
+        if params is not None:
+            print(params)
+            model_men = GridSearchCV(self.model_men, params, cv=5)
+            model_women = GridSearchCV(self.model_women, params, cv=5)
+
+        DaveModelBase.train_model(model_men, self.X_train_men, self.y_train_men)
+        DaveModelBase.analyse(model_men, self.X_train_men, self.y_train_men)
         
         print("\nTraining women...")
-        DaveModelBase.train_model(self.model_women, self.X_train_women, self.y_train_women)
-        DaveModelBase.analyse(self.model_women, self.X_train_women, self.y_train_women)
+        DaveModelBase.train_model(model_women, self.X_train_women, self.y_train_women)
+        DaveModelBase.analyse(model_women, self.X_train_women, self.y_train_women)
         
     def train_model(model, X_train, y_train):
         model.fit(X_train, y_train)
@@ -135,6 +147,12 @@ class MyLogisticRegression(DaveModelBase):
     def get_name(self):
         return "LogisticRegression"
     
+    def get_params(self):
+        return {
+            'C': [0.001, 0.01, 0.1, 1, 10, 100, 1000],
+            'solver': ['newton-cg', 'sag', 'saga', 'lbfgs', 'liblinear']
+        }
+    
 
 class MyRandomForest(DaveModelBase):
     def get_model(self):
@@ -150,3 +168,19 @@ class MyXGBoost(DaveModelBase):
     
     def get_name(self):
         return "XGBoost"
+    
+class MyBagging(DaveModelBase):
+    def get_model(self):
+        return BaggingClassifier(base_estimator=DecisionTreeClassifier(), n_estimators=100, random_state=23)
+    
+    def get_name(self):
+        return "BaggingClassifier"
+
+class MyGradientBoosting(DaveModelBase):
+    def get_model(self):
+        return GradientBoostingClassifier(n_estimators=100, max_features=10)
+    
+    def get_name(self):
+        return "GradientBoostingClassifier"
+    
+    
