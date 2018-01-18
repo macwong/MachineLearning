@@ -63,8 +63,11 @@ class DaveModelBase:
         print("\nLog Loss: ({0:.3f}) +/- ({1:.3f})".format(results.mean(), results.std()))
 
     def evaluate(self):
-        X_train, X_test, y_train, y_test = train_test_split(self.X_train, self.y_train, test_size = 0.25, random_state = 42)
-        model = clone(self.model)
+        DaveModelBase.evaluate_model(self.get_model(), self.X_train_men, self.y_train_men)
+        DaveModelBase.evaluate_model(self.get_model(), self.X_train_women, self.y_train_women)
+
+    def evaluate_model(model, X, y):
+        X_train, X_test, y_train, y_test = train_test_split(X, y, test_size = 0.25, random_state = 42)
         DaveModelBase.train_model(model, X_train, y_train)
         DaveModelBase.analyse(model, X_test, y_test)
 
