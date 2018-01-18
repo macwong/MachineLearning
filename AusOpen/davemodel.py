@@ -2,6 +2,7 @@ import abc
 import numpy as np
 from sklearn.linear_model import LogisticRegression
 from sklearn.metrics import log_loss
+from sklearn.base import clone
 
 class DaveModelBase:
     __metaclass__ = abc.ABCMeta
@@ -11,14 +12,22 @@ class DaveModelBase:
         self.y_train = y_train
         self.X_test = X_test
         self.model = self.get_model()
+        self.best_model = clone(self.model)
         
     def train(self):
-        model = self.model
-        model.fit(self.X_train, self.y_train)
+        print("Training...")
+        self.best_model.fit(self.X_train, self.y_train)
         
-        pred_train = model.predict_proba(self.X_train)
+        pred_train = self.best_model.predict_proba(self.X_train)
         pred_train = np.clip(pred_train, 0.0001, 0.9999)
         print("Log loss:", log_loss(self.y_train, pred_train))
+        
+    def predict(self):
+        print("Predicting...")
+        preds = self.best_model.predict_proba(self.X_test)
+        print(preds.shape)
+        
+        return preds
     
     @abc.abstractmethod
     def get_model(self):
