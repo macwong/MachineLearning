@@ -17,11 +17,14 @@ class DaveModelBase:
         
     def train(self):
         DaveModelBase.train_model(self.best_model, self.X_train, self.y_train)
+        DaveModelBase.analyse(self.best_model, self.X_train, self.y_train)
         
     def train_model(model, X_train, y_train):
         print("\nTraining...")
         model.fit(X_train, y_train)
+
         
+    def analyse(model, X_train, y_train):
         pred_train = model.predict_proba(X_train)
         pred_train = np.clip(pred_train, 0.0001, 0.9999)
         print("Log loss:", log_loss(y_train, pred_train))
@@ -35,14 +38,13 @@ class DaveModelBase:
         print("Prediction count:", preds.shape)
         
         return preds       
-#    
-#    def predict()
-#    
-#    def evaluate(data, truth):
-#        X_train, X_test, y_train, y_test = train_test_split(data, truth, test_size = 0.25, random_state = 42)
-#        log_reg_test, pred_test = predict(X_train, y_train, X_test) 
-#        analyse(log_reg_test, X_test, y_test)
-#    
+
+    def evaluate(self):
+        X_train, X_test, y_train, y_test = train_test_split(self.X_train, self.y_train, test_size = 0.25, random_state = 42)
+        model = clone(self.model)
+        DaveModelBase.train_model(model, X_train, y_train)
+        DaveModelBase.analyse(model, X_test, y_test)
+
     @abc.abstractmethod
     def get_model(self):
         pass
@@ -58,6 +60,9 @@ class DaveModelBase:
         pass
     
     def save_model(self):
+        pass
+    
+    def run(self):
         pass
     
 
