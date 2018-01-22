@@ -78,7 +78,10 @@ class DaveModelBase:
         print("\nLog Loss: ({0:.3f}) +/- ({1:.3f})".format(results.mean(), results.std()))
 
     def evaluate(self):
+        print("\nEvaluating men...")
         DaveModelBase.evaluate_model(self.get_model(), self.X_train_men, self.y_train_men)
+        
+        print("\nEvaluating women...")
         DaveModelBase.evaluate_model(self.get_model(), self.X_train_women, self.y_train_women)
 
     def evaluate_model(model, X, y):
@@ -98,7 +101,7 @@ class DaveModelBase:
         return None
     
     def create_submission(self, pred_men, pred_women):
-        print("Creating submission...")
+        print("\nCreating submission...")
         submission = pd.DataFrame()
         submission["submission_id"] = self.ids_men.append(self.ids_women)
         submission["train"] = 0
@@ -117,9 +120,11 @@ class DaveModelBase:
         submission = submission.sort_values(["submission_id"])
         
         submission.to_csv("AUS_SubmissionFormat_" + self.get_name() + ".csv", index=False)
-        print("Done!")
+        print("Submission created")
         
     def save_model(self):
+        print("\nSaving model to " + self.get_name() + ".pickle ...")
+
         with open(self.get_name() + '.pickle', 'wb') as handle:
             pickle.dump(self, handle, protocol=pickle.HIGHEST_PROTOCOL)
 
@@ -136,6 +141,7 @@ class DaveModelBase:
     def run(self):
         self.train()
         pred_men, pred_women = self.predict()
+        self.evaluate()
         self.create_submission(pred_men, pred_women)
         self.save_model()
     
