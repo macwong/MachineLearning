@@ -12,7 +12,8 @@
 * Fitness
 * Sports
 * Music
-* 
+* Brain hacks
+* Interpersonal skills
 
 ## Books
 * Hands-on Machine Learning
@@ -29,3 +30,4 @@
 * Kaggle competitions
 * Footy analysis end-to-end
 * Research paper implementation
+* Personal blog / portfolio
